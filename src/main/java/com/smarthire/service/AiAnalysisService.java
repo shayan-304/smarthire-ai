@@ -1,0 +1,156 @@
+package com.smarthire.service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smarthire.model.AnalysisRequest;
+import com.smarthire.model.AnalysisResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class AiAnalysisService {
+
+    @Value("${openai.api.key}")
+    private String apiKey;
+
+    @Value("${openai.api.model:gpt-4o-mini}")
+    private String model;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(30))
+            .build();
+
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+
+    public AnalysisResponse analyzeResume(AnalysisRequest request) {
+        try {
+            String prompt = buildPrompt(request.getResumeText(), request.getJobDescription());
+            String aiResponse = callOpenAI(prompt);
+            return parseAiResponse(aiResponse);
+        } catch (Exception e) {
+            AnalysisResponse errorResponse = new AnalysisResponse();
+            errorResponse.setSuccess(false);
+            errorResponse.setErrorMessage("Analysis failed: " + e.getMessage());
+            return errorResponse;
+        }
+    }
+
+    private String buildPrompt(String resumeText, String jobDescription) {
+        return """
+                You are an expert ATS (Applicant Tracking System) and HR consultant. Analyze the following resume against the job description.
+
+                RESUME:
+                %s
+
+                JOB DESCRIPTION:
+                %s
+
+                Respond ONLY with a valid JSON object (no markdown, no backticks) in this exact structure:
+                {
+                  "atsScore": <integer 0-100>,
+                  "scoreLabel": "<Poor/Below Average/Average/Good/Excellent>",
+                  "overallFeedback": "<2-3 sentence overall assessment>",
+                  "experienceLevel": "<Fresher/Junior/Mid-Level/Senior>",
+                  "matchingSkills": ["skill1", "skill2", ...],
+                  "missingSkills": ["skill1", "skill2", ...],
+                  "strengths": ["strength1", "strength2", ...],
+                  "improvements": ["area1", "area2", ...],
+                  "actionItems": ["action1", "action2", "action3", ...]
+                }
+
+                Rules:
+                - atsScore must be a realistic integer from 0 to 100
+                - matchingSkills: skills in the resume that match the job description (max 8)
+                - missingSkills: important skills from job description not found in resume (max 6)
+                - strengths: 3-4 strong points of the resume
+                - improvements: 3-4 specific areas to improve
+                - actionItems: 3-5 concrete next steps the candidate should take
+                - Be honest and constructive
+                """.formatted(resumeText, jobDescription);
+    }
+
+    private String callOpenAI(String prompt) throws Exception {
+        Map<String, Object> message = Map.of(
+                "role", "user",
+                "content", prompt
+        );
+
+        Map<String, Object> requestBody = Map.of(
+                "model", model,
+                "messages", List.of(message),
+                "max_tokens", 1200,
+                "temperature", 0.3
+        );
+
+        String requestJson = objectMapper.writeValueAsString(requestBody);
+
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(OPENAI_API_URL))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + apiKey)
+                .POST(HttpRequest.BodyPublishers.ofString(requestJson))
+                .timeout(Duration.ofSeconds(60))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("OpenAI API error: HTTP " + response.statusCode() + " - " + response.body());
+        }
+
+        JsonNode responseNode = objectMapper.readTree(response.body());
+        return responseNode.path("choices").get(0).path("message").path("content").asText();
+    }
+
+    private AnalysisResponse parseAiResponse(String aiResponseText) {
+        try {
+            // Clean the response in case there are any markdown artifacts
+            String cleaned = aiResponseText.trim()
+                    .replaceAll("^```json\\s*", "")
+                    .replaceAll("^```\\s*", "")
+                    .replaceAll("```$", "")
+                    .trim();
+
+            JsonNode json = objectMapper.readTree(cleaned);
+
+            AnalysisResponse response = new AnalysisResponse();
+            response.setSuccess(true);
+            response.setAtsScore(json.path("atsScore").asInt(50));
+            response.setScoreLabel(json.path("scoreLabel").asText("Average"));
+            response.setOverallFeedback(json.path("overallFeedback").asText("Analysis complete."));
+            response.setExperienceLevel(json.path("experienceLevel").asText("Fresher"));
+            response.setMatchingSkills(parseStringList(json.path("matchingSkills")));
+            response.setMissingSkills(parseStringList(json.path("missingSkills")));
+            response.setStrengths(parseStringList(json.path("strengths")));
+            response.setImprovements(parseStringList(json.path("improvements")));
+            response.setActionItems(parseStringList(json.path("actionItems")));
+
+            return response;
+        } catch (Exception e) {
+            AnalysisResponse errorResponse = new AnalysisResponse();
+            errorResponse.setSuccess(false);
+            errorResponse.setErrorMessage("Failed to parse AI response: " + e.getMessage());
+            return errorResponse;
+        }
+    }
+
+    private List<String> parseStringList(JsonNode arrayNode) {
+        List<String> list = new ArrayList<>();
+        if (arrayNode.isArray()) {
+            for (JsonNode item : arrayNode) {
+                list.add(item.asText());
+            }
+        }
+        return list;
+    }
+}
