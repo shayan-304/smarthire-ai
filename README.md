@@ -4,7 +4,7 @@
 
 ![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-brightgreen?style=flat-square)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-blue?style=flat-square)
+![Google Gemini](https://img.shields.io/badge/Google Gemini-GPT--4o--mini-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-purple?style=flat-square)
 
 ---
@@ -25,7 +25,7 @@
 | Layer | Technology |
 |-------|-----------|
 | Backend | Java 17, Spring Boot 3.2 |
-| AI Integration | OpenAI GPT-4o-mini API |
+| AI Integration | Google Gemini 1.5 Flash API (FREE) |
 | Frontend | Vanilla HTML/CSS/JS (served by Spring) |
 | HTTP Client | Java 11+ `java.net.http.HttpClient` |
 | Build | Maven 3.9 |
@@ -38,7 +38,7 @@
 ### Prerequisites
 - Java 17+
 - Maven 3.8+
-- OpenAI API key → [Get one here](https://platform.openai.com/api-keys)
+- Google Gemini API key → [Get one here](https://platform.openai.com/api-keys)
 
 ### 1. Clone the repository
 ```bash
@@ -46,16 +46,16 @@ git clone https://github.com/YOUR_USERNAME/smarthire-ai.git
 cd smarthire-ai
 ```
 
-### 2. Set your OpenAI API key
+### 2. Set your Google Gemini API key
 ```bash
 # Linux / macOS
-export OPENAI_API_KEY="sk-your-api-key-here"
+export GEMINI_API_KEY="sk-your-api-key-here"
 
 # Windows (Command Prompt)
-set OPENAI_API_KEY=sk-your-api-key-here
+set GEMINI_API_KEY=sk-your-api-key-here
 
 # Windows (PowerShell)
-$env:OPENAI_API_KEY="sk-your-api-key-here"
+$env:GEMINI_API_KEY="sk-your-api-key-here"
 ```
 
 ### 3. Build and run
@@ -114,7 +114,7 @@ Returns application metadata.
 docker build -t smarthire-ai .
 
 # Run container
-docker run -p 8080:8080 -e OPENAI_API_KEY=sk-xxx smarthire-ai
+docker run -p 8080:8080 -e GEMINI_API_KEY=sk-xxx smarthire-ai
 ```
 
 ---
@@ -124,7 +124,7 @@ docker run -p 8080:8080 -e OPENAI_API_KEY=sk-xxx smarthire-ai
 1. Push this repo to GitHub
 2. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
 3. Select your repo
-4. Add environment variable: `OPENAI_API_KEY = sk-your-key`
+4. Add environment variable: `GEMINI_API_KEY = sk-your-key`
 5. Railway auto-detects the Dockerfile and deploys 🎉
 
 **Your app will be live at:** `https://smarthire-ai-xxx.railway.app`
@@ -142,7 +142,7 @@ smarthire-ai/
 │       │   ├── controller/
 │       │   │   └── ResumeController.java       # REST endpoints
 │       │   ├── service/
-│       │   │   └── AiAnalysisService.java      # OpenAI integration
+│       │   │   └── AiAnalysisService.java      # Google Gemini integration
 │       │   └── model/
 │       │       ├── AnalysisRequest.java        # Input model
 │       │       └── AnalysisResponse.java       # Output model
