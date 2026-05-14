@@ -40,6 +40,20 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- Apache PDFBox - Extract text from PDF resumes -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <!-- Apache POI - Extract text from Word (.docx) resumes -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+
         <!-- Lombok for cleaner code -->
         <dependency>
             <groupId>org.projectlombok</groupId>
