@@ -19,23 +19,21 @@ import java.util.Map;
 @Service
 public class AiAnalysisService {
 
-    @Value("${openai.api.key}")
+    @Value("${gemini.api.key}")
     private String apiKey;
-
-    @Value("${openai.api.model:gpt-4o-mini}")
-    private String model;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(30))
             .build();
 
-    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+    private static final String GEMINI_API_URL =
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
 
     public AnalysisResponse analyzeResume(AnalysisRequest request) {
         try {
             String prompt = buildPrompt(request.getResumeText(), request.getJobDescription());
-            String aiResponse = callOpenAI(prompt);
+            String aiResponse = callGemini(prompt);
             return parseAiResponse(aiResponse);
         } catch (Exception e) {
             AnalysisResponse errorResponse = new AnalysisResponse();
@@ -46,7 +44,7 @@ public class AiAnalysisService {
     }
 
     private String buildPrompt(String resumeText, String jobDescription) {
-        return """
+        return String.format("""
                 You are an expert ATS (Applicant Tracking System) and HR consultant. Analyze the following resume against the job description.
 
                 RESUME:
@@ -55,17 +53,17 @@ public class AiAnalysisService {
                 JOB DESCRIPTION:
                 %s
 
-                Respond ONLY with a valid JSON object (no markdown, no backticks) in this exact structure:
+                Respond ONLY with a valid JSON object (no markdown, no backticks, no extra text) in this exact structure:
                 {
                   "atsScore": <integer 0-100>,
                   "scoreLabel": "<Poor/Below Average/Average/Good/Excellent>",
                   "overallFeedback": "<2-3 sentence overall assessment>",
                   "experienceLevel": "<Fresher/Junior/Mid-Level/Senior>",
-                  "matchingSkills": ["skill1", "skill2", ...],
-                  "missingSkills": ["skill1", "skill2", ...],
-                  "strengths": ["strength1", "strength2", ...],
-                  "improvements": ["area1", "area2", ...],
-                  "actionItems": ["action1", "action2", "action3", ...]
+                  "matchingSkills": ["skill1", "skill2"],
+                  "missingSkills": ["skill1", "skill2"],
+                  "strengths": ["strength1", "strength2"],
+                  "improvements": ["area1", "area2"],
+                  "actionItems": ["action1", "action2", "action3"]
                 }
 
                 Rules:
@@ -76,49 +74,52 @@ public class AiAnalysisService {
                 - improvements: 3-4 specific areas to improve
                 - actionItems: 3-5 concrete next steps the candidate should take
                 - Be honest and constructive
-                """.formatted(resumeText, jobDescription);
+                - Return ONLY the JSON object, nothing else
+                """, resumeText, jobDescription);
     }
 
-    private String callOpenAI(String prompt) throws Exception {
-        Map<String, Object> message = Map.of(
-                "role", "user",
-                "content", prompt
+    private String callGemini(String prompt) throws Exception {
+        String requestJson = objectMapper.writeValueAsString(
+            Map.of(
+                "contents", List.of(
+                    Map.of("parts", List.of(Map.of("text", prompt)))
+                ),
+                "generationConfig", Map.of(
+                    "temperature", 0.3,
+                    "maxOutputTokens", 1200
+                )
+            )
         );
-
-        Map<String, Object> requestBody = Map.of(
-                "model", model,
-                "messages", List.of(message),
-                "max_tokens", 1200,
-                "temperature", 0.3
-        );
-
-        String requestJson = objectMapper.writeValueAsString(requestBody);
 
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(OPENAI_API_URL))
+                .uri(URI.create(GEMINI_API_URL + apiKey))
                 .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + apiKey)
                 .POST(HttpRequest.BodyPublishers.ofString(requestJson))
                 .timeout(Duration.ofSeconds(60))
                 .build();
 
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(
+                httpRequest, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
-            throw new RuntimeException("OpenAI API error: HTTP " + response.statusCode() + " - " + response.body());
+            throw new RuntimeException(
+                "Gemini API error: HTTP " + response.statusCode() + " - " + response.body());
         }
 
         JsonNode responseNode = objectMapper.readTree(response.body());
-        return responseNode.path("choices").get(0).path("message").path("content").asText();
+        return responseNode
+                .path("candidates").get(0)
+                .path("content")
+                .path("parts").get(0)
+                .path("text").asText();
     }
 
     private AnalysisResponse parseAiResponse(String aiResponseText) {
         try {
-            // Clean the response in case there are any markdown artifacts
             String cleaned = aiResponseText.trim()
-                    .replaceAll("^```json\\s*", "")
-                    .replaceAll("^```\\s*", "")
-                    .replaceAll("```$", "")
+                    .replaceAll("(?s)^```json\\s*", "")
+                    .replaceAll("(?s)^```\\s*", "")
+                    .replaceAll("```\\s*$", "")
                     .trim();
 
             JsonNode json = objectMapper.readTree(cleaned);

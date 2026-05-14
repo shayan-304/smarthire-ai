@@ -1,23 +1,12 @@
-# ── Stage 1: Build ──────────────────────────────────────────
-FROM maven:3.9.5-eclipse-temurin-17 AS builder
+FROM maven:3.9.5-eclipse-temurin-17
 
 WORKDIR /app
 
-# Copy pom.xml first for dependency caching
 COPY pom.xml .
-RUN mvn dependency:go-offline -q
-
-# Copy source and build
 COPY src ./src
-RUN mvn clean package -DskipTests -q
 
-# ── Stage 2: Run ────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-alpine
-
-WORKDIR /app
-
-COPY --from=builder /app/target/smarthire-ai-1.0.0.jar app.jar
+RUN mvn clean package -DskipTests
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "target/smarthire-ai-1.0.0.jar"]
