@@ -25,99 +25,80 @@ public class ResumeController {
         this.fileParserService = fileParserService;
     }
 
-    /**
-     * Analyze resume from plain text (existing endpoint)
-     * POST /api/analyze
-     */
+    /** POST /api/analyze — plain text input */
     @PostMapping("/analyze")
     public ResponseEntity<AnalysisResponse> analyzeResume(
             @Valid @RequestBody AnalysisRequest request) {
+
         AnalysisResponse response = aiAnalysisService.analyzeResume(request);
-        if (!response.isSuccess()) {
-            return ResponseEntity.internalServerError().body(response);
-        }
-        return ResponseEntity.ok(response);
+        return response.isSuccess()
+                ? ResponseEntity.ok(response)
+                : ResponseEntity.internalServerError().body(response);
     }
 
-    /**
-     * Upload resume file (PDF or DOCX) and analyze against job description
-     * POST /api/upload-analyze
-     * Multipart form: resumeFile (PDF/DOCX) + jobDescription (text)
-     */
+    /** POST /api/upload-analyze — PDF or DOCX file upload */
     @PostMapping("/upload-analyze")
     public ResponseEntity<AnalysisResponse> uploadAndAnalyze(
             @RequestParam("resumeFile") MultipartFile resumeFile,
             @RequestParam("jobDescription") String jobDescription) {
 
-        // Validate file
-        if (resumeFile.isEmpty()) {
-            AnalysisResponse err = new AnalysisResponse();
-            err.setSuccess(false);
-            err.setErrorMessage("No file uploaded. Please attach your resume PDF or DOCX.");
-            return ResponseEntity.badRequest().body(err);
+        // File validation
+        if (resumeFile == null || resumeFile.isEmpty()) {
+            return bad("No file received. Please select a PDF or DOCX resume file.");
         }
-
-        // Validate job description
         if (jobDescription == null || jobDescription.trim().length() < 20) {
-            AnalysisResponse err = new AnalysisResponse();
-            err.setSuccess(false);
-            err.setErrorMessage("Job description is too short. Please provide more detail.");
-            return ResponseEntity.badRequest().body(err);
+            return bad("Job description is too short. Please paste a full job description (at least 20 characters).");
+        }
+        if (resumeFile.getSize() > 10 * 1024 * 1024) {
+            return bad("File is too large (max 10MB). Please upload a smaller file.");
         }
 
-        // File size check (5MB max)
-        if (resumeFile.getSize() > 5 * 1024 * 1024) {
-            AnalysisResponse err = new AnalysisResponse();
-            err.setSuccess(false);
-            err.setErrorMessage("File too large. Maximum size is 5MB.");
-            return ResponseEntity.badRequest().body(err);
-        }
-
+        String resumeText;
         try {
-            // Extract text from PDF/DOCX
-            String resumeText = fileParserService.extractText(resumeFile);
-
-            // Run AI analysis
-            AnalysisRequest analysisRequest = new AnalysisRequest(
-                resumeText, jobDescription.trim());
-            AnalysisResponse response = aiAnalysisService.analyzeResume(analysisRequest);
-
-            if (!response.isSuccess()) {
-                return ResponseEntity.internalServerError().body(response);
-            }
-            return ResponseEntity.ok(response);
-
+            resumeText = fileParserService.extractText(resumeFile);
         } catch (IllegalArgumentException e) {
-            AnalysisResponse err = new AnalysisResponse();
-            err.setSuccess(false);
-            err.setErrorMessage(e.getMessage());
-            return ResponseEntity.badRequest().body(err);
+            return bad(e.getMessage());
         } catch (Exception e) {
-            AnalysisResponse err = new AnalysisResponse();
-            err.setSuccess(false);
-            err.setErrorMessage("Failed to process file: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(err);
+            return bad("Could not read file: " + e.getMessage());
         }
+
+        if (resumeText.trim().length() < 50) {
+            return bad("Extracted text is too short. The file may be empty or image-based. Try the 'Paste Text' tab.");
+        }
+
+        AnalysisResponse response = aiAnalysisService.analyzeResume(
+                new AnalysisRequest(resumeText.trim(), jobDescription.trim()));
+
+        return response.isSuccess()
+                ? ResponseEntity.ok(response)
+                : ResponseEntity.internalServerError().body(response);
     }
 
-    /** Health check — GET /api/health */
+    /** GET /api/health */
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.ok(Map.of(
-            "status", "UP",
-            "app", "SmartHire AI",
-            "version", "1.0.0"
+                "status",  "UP",
+                "app",     "SmartHire AI",
+                "version", "1.0.0",
+                "ai",      "Google Gemini 1.5 Flash"
         ));
     }
 
-    /** App info — GET /api/info */
+    /** GET /api/info */
     @GetMapping("/info")
     public ResponseEntity<Map<String, String>> info() {
         return ResponseEntity.ok(Map.of(
-            "name", "SmartHire AI - Resume Analyzer",
-            "description", "AI-powered resume analysis and ATS scoring tool",
-            "ai", "Google Gemini 1.5 Flash",
-            "version", "1.0.0"
+                "name",        "SmartHire AI",
+                "description", "AI-powered resume analyzer using Google Gemini",
+                "version",     "1.0.0"
         ));
+    }
+
+    private ResponseEntity<AnalysisResponse> bad(String msg) {
+        AnalysisResponse err = new AnalysisResponse();
+        err.setSuccess(false);
+        err.setErrorMessage(msg);
+        return ResponseEntity.badRequest().body(err);
     }
 }
