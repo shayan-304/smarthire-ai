@@ -23,174 +23,186 @@ public class AiAnalysisService {
 
     private static final Logger log = Logger.getLogger(AiAnalysisService.class.getName());
 
-    @Value("${gemini.api.key}")
+    // Groq API — free, works in India, 14400 req/day
+    // OpenAI-compatible format — simple and reliable
+    @Value("${groq.api.key}")
     private String apiKey;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String GROQ_URL =
+            "https://api.groq.com/openai/v1/chat/completions";
 
+    // Best free model on Groq — fast and smart
+    private static final String MODEL = "llama-3.3-70b-versatile";
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(30))
             .build();
 
-    private static final String GEMINI_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
-
     @PostConstruct
     public void init() {
-        if (apiKey == null || apiKey.isBlank() || apiKey.equals("your-gemini-api-key-here")) {
-            log.severe("⚠️ GEMINI_API_KEY is not configured! Set it as an environment variable.");
+        if (apiKey == null || apiKey.isBlank() || apiKey.startsWith("your-")) {
+            log.severe("GROQ_API_KEY is not set! Get a free key at console.groq.com");
         } else {
-            log.info("✅ Gemini API key loaded — starts with: " + apiKey.substring(0, 8) + "...");
+            log.info("Groq API ready — model: " + MODEL +
+                     " | key: " + apiKey.substring(0, Math.min(10, apiKey.length())) + "...");
         }
     }
 
     public AnalysisResponse analyzeResume(AnalysisRequest request) {
-        // Guard: check key before calling
-        if (apiKey == null || apiKey.isBlank() || apiKey.equals("your-gemini-api-key-here")) {
-            AnalysisResponse err = new AnalysisResponse();
-            err.setSuccess(false);
-            err.setErrorMessage("Gemini API key is not configured. Please set GEMINI_API_KEY environment variable.");
-            return err;
+        if (apiKey == null || apiKey.isBlank() || apiKey.startsWith("your-")) {
+            return error("AI service not configured. GROQ_API_KEY environment variable is missing.");
         }
-
         try {
             String prompt  = buildPrompt(request.getResumeText(), request.getJobDescription());
-            String rawJson = callGemini(prompt);
-            return parseAiResponse(rawJson);
+            String rawText = callGroq(prompt);
+            return parseResponse(rawText);
         } catch (Exception e) {
-            log.severe("Analysis failed: " + e.getMessage());
-            AnalysisResponse err = new AnalysisResponse();
-            err.setSuccess(false);
-            err.setErrorMessage("Analysis failed: " + e.getMessage());
-            return err;
+            log.severe("analyzeResume failed: " + e.getMessage());
+            return error("Analysis failed: " + e.getMessage());
         }
     }
 
-    private String buildPrompt(String resumeText, String jobDescription) {
-        return "You are an expert ATS (Applicant Tracking System) and HR consultant.\n" +
-               "Analyze the following resume against the job description.\n\n" +
-               "RESUME:\n" + resumeText + "\n\n" +
-               "JOB DESCRIPTION:\n" + jobDescription + "\n\n" +
-               "Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation. " +
-               "Return ONLY the raw JSON starting with { and ending with }.\n\n" +
-               "{\n" +
-               "  \"atsScore\": <integer 0-100>,\n" +
-               "  \"scoreLabel\": \"<Poor|Below Average|Average|Good|Excellent>\",\n" +
-               "  \"overallFeedback\": \"<2-3 sentence honest assessment>\",\n" +
-               "  \"experienceLevel\": \"<Fresher|Junior|Mid-Level|Senior>\",\n" +
-               "  \"matchingSkills\": [\"skill1\", \"skill2\"],\n" +
-               "  \"missingSkills\": [\"skill1\", \"skill2\"],\n" +
-               "  \"strengths\": [\"strength1\", \"strength2\", \"strength3\"],\n" +
-               "  \"improvements\": [\"area1\", \"area2\", \"area3\"],\n" +
-               "  \"actionItems\": [\"action1\", \"action2\", \"action3\"]\n" +
-               "}\n\n" +
-               "Rules:\n" +
-               "- atsScore: realistic integer 0-100 based on keyword match\n" +
-               "- matchingSkills: max 8 skills found in BOTH resume AND job description\n" +
-               "- missingSkills: max 6 important skills from job description NOT in resume\n" +
-               "- strengths: 3-4 genuine strong points\n" +
-               "- improvements: 3-4 specific areas to fix\n" +
-               "- actionItems: 3-5 concrete steps the candidate should take next\n" +
-               "- Return ONLY the JSON. Nothing before it. Nothing after it.";
+    // ─── Build Prompt ──────────────────────────────────────────────────────────
+
+    private String buildPrompt(String resume, String jd) {
+        return "You are an expert ATS (Applicant Tracking System) analyst and HR consultant.\n"
+             + "Carefully analyze the resume against the job description below.\n\n"
+             + "RESUME:\n" + resume + "\n\n"
+             + "JOB DESCRIPTION:\n" + jd + "\n\n"
+             + "Return ONLY a raw JSON object. No markdown. No backticks. No explanation.\n"
+             + "Start your response with { and end with }.\n\n"
+             + "JSON structure:\n"
+             + "{\n"
+             + "  \"atsScore\": <integer 0-100>,\n"
+             + "  \"scoreLabel\": \"<Poor|Below Average|Average|Good|Excellent>\",\n"
+             + "  \"overallFeedback\": \"<2-3 sentence honest assessment>\",\n"
+             + "  \"experienceLevel\": \"<Fresher|Junior|Mid-Level|Senior>\",\n"
+             + "  \"matchingSkills\": [\"skill1\", \"skill2\"],\n"
+             + "  \"missingSkills\": [\"skill1\", \"skill2\"],\n"
+             + "  \"strengths\": [\"strength1\", \"strength2\", \"strength3\"],\n"
+             + "  \"improvements\": [\"area1\", \"area2\", \"area3\"],\n"
+             + "  \"actionItems\": [\"action1\", \"action2\", \"action3\"]\n"
+             + "}\n\n"
+             + "Scoring rules:\n"
+             + "- atsScore: keyword match + experience relevance (0=terrible, 100=perfect)\n"
+             + "- matchingSkills: max 8 — skills present in BOTH resume AND job description\n"
+             + "- missingSkills: max 6 — key skills in job description but NOT in resume\n"
+             + "- strengths: 3-4 genuine strong points of this resume\n"
+             + "- improvements: 3-4 specific things the candidate should fix\n"
+             + "- actionItems: 3-5 concrete next steps for the candidate\n"
+             + "Return ONLY the JSON. Nothing else.";
     }
 
-    private String callGemini(String prompt) throws Exception {
-        String requestBody = objectMapper.writeValueAsString(Map.of(
-            "contents", List.of(
-                Map.of("parts", List.of(Map.of("text", prompt)))
-            ),
-            "generationConfig", Map.of(
-                "temperature",     0.2,
-                "maxOutputTokens", 1500,
-                "topP",            0.8
-            )
+    // ─── Call Groq API (OpenAI-compatible) ────────────────────────────────────
+
+    private String callGroq(String prompt) throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of(
+            "model",    MODEL,
+            "messages", List.of(Map.of("role", "user", "content", prompt)),
+            "max_tokens",   1500,
+            "temperature",  0.2,
+            "top_p",        0.9,
+            "stream",       false
         ));
 
-        HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(GEMINI_URL + apiKey))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .timeout(Duration.ofSeconds(90))
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(GROQ_URL))
+                .header("Content-Type",  "application/json")
+                .header("Authorization", "Bearer " + apiKey)
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .timeout(Duration.ofSeconds(60))
                 .build();
 
-        HttpResponse<String> res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(
+                request, HttpResponse.BodyHandlers.ofString());
 
-        if (res.statusCode() == 400) {
-            throw new RuntimeException("Invalid Gemini API key or bad request. Check GEMINI_API_KEY.");
-        }
-        if (res.statusCode() == 429) {
-            throw new RuntimeException("Gemini API quota exceeded. Wait a minute and try again.");
-        }
-        if (res.statusCode() != 200) {
-            throw new RuntimeException("Gemini API error " + res.statusCode() + ": " + res.body());
-        }
+        int status = response.statusCode();
 
-        JsonNode root = objectMapper.readTree(res.body());
+        if (status == 401) throw new RuntimeException(
+                "Invalid Groq API key. Get a free key at console.groq.com");
+        if (status == 429) throw new RuntimeException(
+                "Groq rate limit hit. Wait 60 seconds and try again.");
+        if (status == 413) throw new RuntimeException(
+                "Resume is too long for AI processing. Try a shorter resume.");
+        if (status != 200) throw new RuntimeException(
+                "Groq API error " + status + ": " +
+                response.body().substring(0, Math.min(300, response.body().length())));
 
-        // Validate Gemini response structure
-        JsonNode candidates = root.path("candidates");
-        if (candidates.isMissingNode() || !candidates.isArray() || candidates.size() == 0) {
-            throw new RuntimeException("Gemini returned no candidates. Raw: " + res.body().substring(0, Math.min(200, res.body().length())));
+        // Parse OpenAI-compatible response format
+        JsonNode root = objectMapper.readTree(response.body());
+        JsonNode choices = root.path("choices");
+        if (choices.isMissingNode() || !choices.isArray() || choices.isEmpty()) {
+            throw new RuntimeException("Groq returned empty choices. Raw: " + response.body());
         }
-
-        return candidates.get(0)
-                .path("content")
-                .path("parts").get(0)
-                .path("text").asText();
+        return choices.get(0).path("message").path("content").asText();
     }
 
-    private AnalysisResponse parseAiResponse(String rawText) {
+    // ─── Parse AI Response ────────────────────────────────────────────────────
+
+    private AnalysisResponse parseResponse(String rawText) {
         try {
-            // Strip markdown fences if Gemini adds them despite instructions
-            String cleaned = rawText.trim();
-            cleaned = cleaned.replaceAll("(?s)^```json\\s*", "");
-            cleaned = cleaned.replaceAll("(?s)^```\\s*",     "");
-            cleaned = cleaned.replaceAll("```\\s*$",          "");
+            String s = rawText.trim();
 
-            // Find the JSON object boundaries in case there's extra text
-            int start = cleaned.indexOf('{');
-            int end   = cleaned.lastIndexOf('}');
-            if (start >= 0 && end > start) {
-                cleaned = cleaned.substring(start, end + 1);
+            // Strip any markdown fences
+            s = s.replaceAll("(?s)^```json\\s*", "");
+            s = s.replaceAll("(?s)^```\\s*",     "");
+            s = s.replaceAll("```\\s*$",          "");
+            s = s.trim();
+
+            // Extract JSON boundaries (handles extra text before/after)
+            int start = s.indexOf('{');
+            int end   = s.lastIndexOf('}');
+            if (start < 0 || end <= start) {
+                throw new RuntimeException("No JSON object found in AI response. Got: " + s.substring(0, Math.min(200, s.length())));
             }
+            s = s.substring(start, end + 1);
 
-            cleaned = cleaned.trim();
-            JsonNode json = objectMapper.readTree(cleaned);
+            JsonNode j = objectMapper.readTree(s);
 
-            AnalysisResponse resp = new AnalysisResponse();
-            resp.setSuccess(true);
-            resp.setAtsScore(       clampScore(json.path("atsScore").asInt(50)));
-            resp.setScoreLabel(     json.path("scoreLabel").asText("Average"));
-            resp.setOverallFeedback(json.path("overallFeedback").asText("Analysis complete."));
-            resp.setExperienceLevel(json.path("experienceLevel").asText("Fresher"));
-            resp.setMatchingSkills( toList(json.path("matchingSkills")));
-            resp.setMissingSkills(  toList(json.path("missingSkills")));
-            resp.setStrengths(      toList(json.path("strengths")));
-            resp.setImprovements(   toList(json.path("improvements")));
-            resp.setActionItems(    toList(json.path("actionItems")));
-            return resp;
+            AnalysisResponse r = new AnalysisResponse();
+            r.setSuccess(true);
+            r.setAtsScore(       clamp(j.path("atsScore").asInt(50)));
+            r.setScoreLabel(     text(j, "scoreLabel",      "Average"));
+            r.setOverallFeedback(text(j, "overallFeedback", "Analysis complete."));
+            r.setExperienceLevel(text(j, "experienceLevel", "Fresher"));
+            r.setMatchingSkills( list(j.path("matchingSkills")));
+            r.setMissingSkills(  list(j.path("missingSkills")));
+            r.setStrengths(      list(j.path("strengths")));
+            r.setImprovements(   list(j.path("improvements")));
+            r.setActionItems(    list(j.path("actionItems")));
+            return r;
 
         } catch (Exception e) {
-            log.severe("Failed to parse Gemini response: " + e.getMessage() + "\nRaw: " + rawText);
-            AnalysisResponse err = new AnalysisResponse();
-            err.setSuccess(false);
-            err.setErrorMessage("Could not parse AI response. Please try again.");
-            return err;
+            log.severe("parseResponse error: " + e.getMessage() + "\nRaw: " + rawText.substring(0, Math.min(500, rawText.length())));
+            return error("Could not parse AI response. Please try again.");
         }
     }
 
-    private int clampScore(int score) {
-        return Math.max(0, Math.min(100, score));
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    private AnalysisResponse error(String msg) {
+        AnalysisResponse r = new AnalysisResponse();
+        r.setSuccess(false);
+        r.setErrorMessage(msg);
+        return r;
     }
 
-    private List<String> toList(JsonNode node) {
-        List<String> list = new ArrayList<>();
+    private int clamp(int v) { return Math.max(0, Math.min(100, v)); }
+
+    private String text(JsonNode j, String field, String def) {
+        String v = j.path(field).asText("").trim();
+        return v.isEmpty() ? def : v;
+    }
+
+    private List<String> list(JsonNode node) {
+        List<String> out = new ArrayList<>();
         if (node != null && node.isArray()) {
             for (JsonNode item : node) {
-                String val = item.asText("").trim();
-                if (!val.isEmpty()) list.add(val);
+                String v = item.asText("").trim();
+                if (!v.isEmpty()) out.add(v);
             }
         }
-        return list;
+        return out;
     }
 }

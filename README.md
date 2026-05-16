@@ -1,187 +1,62 @@
 # 🤖 SmartHire AI — Resume Analyzer
 
-> AI-powered resume analysis tool that scores ATS compatibility, identifies skill gaps, and provides actionable improvement suggestions.
+> AI-powered resume analysis tool built with Java Spring Boot + Google Groq (Free LLaMA 3.3)
 
 ![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-brightgreen?style=flat-square)
-![Google Gemini](https://img.shields.io/badge/Google Gemini-GPT--4o--mini-blue?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-purple?style=flat-square)
-
----
+![Groq](https://img.shields.io/badge/Groq-LLaMA_3.3_70B-blue?style=flat-square)
+![Render](https://img.shields.io/badge/Deployed-Render.com-purple?style=flat-square)
 
 ## ✨ Features
+- Upload PDF or DOCX resume — no copy-paste needed
+- ATS compatibility score (0–100)
+- Matching and missing skills analysis
+- Strengths, improvements, action items
+- 100% free AI (Groq LLaMA 3.3) — works in India
 
-- **ATS Score** — Get a 0–100 compatibility score against any job description
-- **Skill Gap Analysis** — See which skills match and which are missing
-- **Strengths & Weaknesses** — Honest assessment of your resume's strong and weak points
-- **Action Items** — Concrete next steps to improve your chances
-- **Modern UI** — Clean, responsive dark-mode interface
-- **REST API** — Full JSON API, easily extendable
+## 🆓 Free Services Used
+| Service | Purpose | Free Tier |
+|---------|---------|-----------|
+| Groq API | AI analysis | 14,400 req/day, no card |
+| Render.com | Hosting | 750 hrs/month, no card |
+| GitHub | Code + CI/CD | Free forever |
 
----
+## 🚀 Run Locally
+```bash
+git clone https://github.com/shayan-304/smarthire-ai.git
+cd smarthire-ai
+
+# Get free key at console.groq.com → API Keys
+export GROQ_API_KEY=your-key-here   # Linux/Mac
+set GROQ_API_KEY=your-key-here      # Windows
+
+mvn clean spring-boot:run
+# Open: http://localhost:8080
+```
+
+## ☁️ Deploy Free on Render.com
+1. Push to GitHub
+2. Go to render.com → New → Web Service
+3. Connect GitHub repo `shayan-304/smarthire-ai`
+4. Select **Docker** environment
+5. Add env var: `GROQ_API_KEY = your-key`
+6. Click Deploy — free HTTPS URL in 5 minutes
+
+## 🔑 Get Free Groq API Key
+1. Go to **console.groq.com**
+2. Sign up with Google account
+3. Click **API Keys** → **Create API Key**
+4. Free: 14,400 requests/day, no credit card
 
 ## 🏗️ Tech Stack
+- Java 17 + Spring Boot 3.2
+- Groq API (LLaMA 3.3 70B) — free AI
+- Apache PDFBox 2.0.31 — PDF parsing
+- Apache POI 5.2.3 — DOCX parsing
+- Docker + Render.com — free deployment
+- GitHub Actions — CI/CD
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | Java 17, Spring Boot 3.2 |
-| AI Integration | Google Gemini 1.5 Flash API (FREE) |
-| Frontend | Vanilla HTML/CSS/JS (served by Spring) |
-| HTTP Client | Java 11+ `java.net.http.HttpClient` |
-| Build | Maven 3.9 |
-| Deployment | Docker, Railway / Render |
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Java 17+
-- Maven 3.8+
-- Google Gemini API key → [Get one here](https://platform.openai.com/api-keys)
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/YOUR_USERNAME/smarthire-ai.git
-cd smarthire-ai
-```
-
-### 2. Set your Google Gemini API key
-```bash
-# Linux / macOS
-export GEMINI_API_KEY="sk-your-api-key-here"
-
-# Windows (Command Prompt)
-set GEMINI_API_KEY=sk-your-api-key-here
-
-# Windows (PowerShell)
-$env:GEMINI_API_KEY="sk-your-api-key-here"
-```
-
-### 3. Build and run
-```bash
-mvn clean spring-boot:run
-```
-
-### 4. Open in browser
-```
-http://localhost:8080
-```
-
----
-
-## 🌐 API Endpoints
-
-### `POST /api/analyze`
-Analyze a resume against a job description.
-
-**Request Body:**
-```json
-{
-  "resumeText": "John Doe\nSoftware Engineer...",
-  "jobDescription": "We are looking for a Java developer..."
-}
-```
-
-**Response:**
-```json
-{
-  "atsScore": 74,
-  "scoreLabel": "Good",
-  "experienceLevel": "Fresher",
-  "overallFeedback": "Your resume shows strong technical foundations...",
-  "matchingSkills": ["Java", "Spring Boot", "SQL", "REST APIs"],
-  "missingSkills": ["Docker", "Kubernetes", "AWS"],
-  "strengths": ["Relevant internship experience", "Strong academic background"],
-  "improvements": ["Add quantified achievements", "Include cloud certifications"],
-  "actionItems": ["Learn Docker basics", "Add GitHub project links", "Quantify your internship impact"],
-  "success": true
-}
-```
-
-### `GET /api/health`
-Returns server health status.
-
-### `GET /api/info`
-Returns application metadata.
-
----
-
-## 🐳 Docker
-
-```bash
-# Build image
-docker build -t smarthire-ai .
-
-# Run container
-docker run -p 8080:8080 -e GEMINI_API_KEY=sk-xxx smarthire-ai
-```
-
----
-
-## ☁️ Deploy to Railway (Free)
-
-1. Push this repo to GitHub
-2. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
-3. Select your repo
-4. Add environment variable: `GEMINI_API_KEY = sk-your-key`
-5. Railway auto-detects the Dockerfile and deploys 🎉
-
-**Your app will be live at:** `https://smarthire-ai-xxx.railway.app`
-
----
-
-## 📁 Project Structure
-
-```
-smarthire-ai/
-├── src/
-│   └── main/
-│       ├── java/com/smarthire/
-│       │   ├── SmartHireApplication.java      # App entry point
-│       │   ├── controller/
-│       │   │   └── ResumeController.java       # REST endpoints
-│       │   ├── service/
-│       │   │   └── AiAnalysisService.java      # Google Gemini integration
-│       │   └── model/
-│       │       ├── AnalysisRequest.java        # Input model
-│       │       └── AnalysisResponse.java       # Output model
-│       └── resources/
-│           ├── application.properties          # Configuration
-│           └── static/
-│               └── index.html                  # Frontend UI
-├── Dockerfile                                  # Container config
-├── pom.xml                                     # Maven dependencies
-└── README.md
-```
-
----
-
-## 💡 Future Enhancements
-
-- [ ] PDF resume upload support
-- [ ] Resume history with H2/PostgreSQL database
-- [ ] Multiple job description comparison
-- [ ] Email report delivery
-- [ ] LinkedIn profile import
-
----
-
-## 🔐 Security Notes
-
-- **Never** commit your API key to Git
-- Always use environment variables for secrets
-- `.gitignore` is configured to exclude `.env` files
-
----
-
-## 👤 Author
-
-**Mafaaz** — Electronics & Communication Engineering  
-Built as a portfolio project demonstrating Java, Spring Boot, REST APIs, and AI integration.
-
----
-
-## 📄 License
-
-MIT License — free to use, modify, and distribute.
+## 📡 API Endpoints
+- `POST /api/analyze` — text input analysis
+- `POST /api/upload-analyze` — PDF/DOCX file analysis
+- `GET /api/health` — health check

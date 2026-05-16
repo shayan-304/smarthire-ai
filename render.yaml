@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: smarthire-ai
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false   # You set this manually in Render dashboard
+      - key: PORT
+        value: 8080

@@ -81,7 +81,7 @@ public class ResumeController {
                 "status",  "UP",
                 "app",     "SmartHire AI",
                 "version", "1.0.0",
-                "ai",      "Google Gemini 1.5 Flash"
+                "ai",      "Groq LLaMA 3.3 70B"
         ));
     }
 
@@ -90,7 +90,7 @@ public class ResumeController {
     public ResponseEntity<Map<String, String>> info() {
         return ResponseEntity.ok(Map.of(
                 "name",        "SmartHire AI",
-                "description", "AI-powered resume analyzer using Google Gemini",
+                "description", "AI-powered resume analyzer using Groq LLaMA 3.3",
                 "version",     "1.0.0"
         ));
     }
