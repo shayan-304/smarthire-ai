@@ -34,19 +34,6 @@ mvn clean spring-boot:run
 # Open: http://localhost:8080
 ```
 
-## ☁️ Deploy Free on Render.com
-1. Push to GitHub
-2. Go to render.com → New → Web Service
-3. Connect GitHub repo `shayan-304/smarthire-ai`
-4. Select **Docker** environment
-5. Add env var: `GROQ_API_KEY = your-key`
-6. Click Deploy — free HTTPS URL in 5 minutes
-
-## 🔑 Get Free Groq API Key
-1. Go to **console.groq.com**
-2. Sign up with Google account
-3. Click **API Keys** → **Create API Key**
-4. Free: 14,400 requests/day, no credit card
 
 ## 🏗️ Tech Stack
 - Java 17 + Spring Boot 3.2
