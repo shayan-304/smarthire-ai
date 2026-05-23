@@ -1,6 +1,21 @@
-# 🤖 SmartHire AI — AI-Powered Resume Analyzer
+#  SmartHire AI — AI-Powered Resume Analyzer
 
-> Upload your PDF/DOCX resume + paste a job description → get ATS score, skill gaps, strengths, and **Actions to be Taken** — powered by free Groq LLaMA 3.3 AI.
+SmartHire AI is a resume analysis tool built using Spring Boot and Groq LLaMA 3.3 models.
+The application compares a resume with a job description and provides an ATS-style evaluation with suggestions for improvement.
+
+Users can upload resumes in PDF or DOCX format and receive:
+
+ - ATS score
+
+ - Matching skills
+
+ - Missing skills
+
+- Resume strengths
+
+- Suggestions for improvement
+
+The project also stores previous analysis results using an H2 database.
 
 ![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-brightgreen?style=flat-square)
@@ -9,31 +24,20 @@
 
 ---
 
-## ✨ Features
-- 📎 **Upload PDF or DOCX resume** — no copy-paste (Apache PDFBox + POI)
-- 🎯 **ATS Score 0–100** — Poor / Average / Good / Excellent
-- ✅ **Matching Skills** — found in both resume and job description
-- ❌ **Missing Skills** — key skills from JD not in resume
-- ⭐ **Strengths** — genuine strong points of the resume
-- 💡 **Areas to Improve** — specific things to fix
-- 🚀 **Actions to be Taken** — concrete next steps
-- 💾 **Analysis History** — every result auto-saved to H2 database
-- 🌐 **Live on Render.com** — free, no credit card needed
-
+## Features
+-  **Upload PDF or DOCX resume** — no copy-paste (Apache PDFBox + POI)
+-  **ATS Score 0–100** — Poor / Average / Good / Excellent
+-  **Matching Skills** — found in both resume and job description
+-  **Missing Skills** — key skills from JD not in resume
+-  **Strengths** — genuine strong points of the resume
+-  **Areas to Improve** — specific things to fix
+-  **Improvement suggestions** — concrete next steps
+-  **Analysis History** — every result auto-saved to H2 database
+-  **Live on Render.com** — free, no credit card needed
+  
 ---
 
-## 🆓 100% Free Stack — Total Cost: ₹0
-
-| Service | Purpose | Free Tier | Card? |
-|---------|---------|-----------|-------|
-| **Groq AI** | LLaMA 3.3 70B analysis | 14,400 req/day | ❌ No |
-| **Render.com** | Cloud hosting | 750 hrs/month | ❌ No |
-| **GitHub** | Code + CI/CD | 2,000 CI min/month | ❌ No |
-| **H2 Database** | Embedded storage | Unlimited (in-memory) | ❌ No |
-
----
-
-## 🚀 Run Locally
+## Run Locally
 
 ```bash
 # 1. Clone
@@ -56,7 +60,7 @@ mvn clean spring-boot:run
 
 ---
 
-## ☁️ Deploy Free on Render.com
+## Deploy Free on Render.com
 
 1. Push to GitHub
 2. Go to [render.com](https://render.com) → New → Web Service
@@ -67,7 +71,7 @@ mvn clean spring-boot:run
 
 ---
 
-## 📡 API Endpoints
+## API Endpoints
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
@@ -79,7 +83,7 @@ mvn clean spring-boot:run
 
 ---
 
-## 🏗️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -96,6 +100,17 @@ mvn clean spring-boot:run
 
 ---
 
+## Notes
+
+PDF parsing is handled using Apache PDFBox
+
+DOCX parsing is handled using Apache POI
+
+Analysis history is stored using H2 Database
+
+Groq API is used for generating resume analysis results
+
+---
 ## 📁 Project Structure
 
 ```
@@ -137,9 +152,9 @@ smarthire-ai/
 
 ## 👤 Author
 
-**Mafaaz Shayan** — Electronics & Communication Engineering, Class of 2026
+**Mafaaz Shayan M** — Electronics & Communication Engineering Student, Class of 2026
 
-Built as a portfolio project demonstrating: Java backend development, REST API design, AI/LLM integration, file handling (PDF/DOCX), Docker containerization, cloud deployment, and CI/CD pipelines.
+Built for learning backend development, REST APIs, file handling, and LLM integration using Java and Spring Boot.
 
 ---
 
