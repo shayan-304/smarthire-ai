@@ -138,7 +138,7 @@ smarthire-ai/
 
 ---
 
-## 🔧 5 Production Bugs Fixed
+##  5 Production Bugs Fixed
 
 | # | Bug | Fix Applied |
 |---|-----|------------|
