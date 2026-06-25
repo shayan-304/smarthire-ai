@@ -9,63 +9,100 @@ Users can upload resumes in PDF or DOCX format and receive:
 
  - Matching skills
 
- - Missing skills
+# 🚀 SmartHire AI — Career Success Platform
 
-- Resume strengths
-
-- Suggestions for improvement
-
-The project also stores previous analysis results using an H2 database.
-
-![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-brightgreen?style=flat-square)
-![Gemini](https://img.shields.io/badge/Google-Gemini_2.5_Flash-blue?style=flat-square)
-![Render](https://img.shields.io/badge/Deployed-Render.com-purple?style=flat-square)
+<div align="center">
+  <img src="https://img.shields.io/badge/Spring_Boot-3.3.4-6db33f?style=for-the-badge&logo=springboot" alt="Spring Boot">
+  <img src="https://img.shields.io/badge/Google_Gemini-1.5_Flash-4285F4?style=for-the-badge&logo=google" alt="Google Gemini">
+  <img src="https://img.shields.io/badge/Render-Deployed-46E3B7?style=for-the-badge&logo=render" alt="Render">
+</div>
 
 ---
 
-## Features
--  **Upload PDF or DOCX resume** — no copy-paste (Apache PDFBox + POI)
--  **ATS Score 0–100** — Poor / Average / Good / Excellent
--  **Matching Skills** — found in both resume and job description
--  **Missing Skills** — key skills from JD not in resume
--  **Strengths** — genuine strong points of the resume
--  **Areas to Improve** — specific things to fix
--  **Improvement suggestions** — concrete next steps
--  **Analysis History** — every result auto-saved to H2 database
--  **Live on Render.com** — free, no credit card needed
-  
----
+*"SmartHire AI helps candidates analyze resumes, optimize ATS performance, prepare for interviews, identify skill gaps, improve career readiness, and maximize job success."*
 
-## Run Locally
+SmartHire AI is an advanced, production-ready SaaS platform that goes far beyond simple resume parsing. It leverages the intelligence of **Google Gemini** to offer a complete **Career Success Suite**, seamlessly integrating document extraction, natural language processing, and personalized career guidance into one beautifully designed interface.
 
-```bash
-# 1. Clone
-git clone https://github.com/shayan-304/smarthire-ai.git
-cd smarthire-ai
+## ✨ New Career Success Suite Features
 
-# 2. Get key at: aistudio.google.com
-# 3. Set the key
-export GEMINI_API_KEY=your-key-here      # Linux/Mac
-set GEMINI_API_KEY=your-key-here         # Windows
+- 🎯 **Advanced ATS Scoring:** Instantly calculates keyword and experience match scores against a specific Job Description.
+- 🚦 **Keyword Gap Analysis:** Automatically identifies missing technical and soft skills, categorizing them by High, Medium, or Low impact on your ATS ranking.
+- 💡 **Resume Enhancement Assistant:** Provides section-wise, natural language rewrites to incorporate missing skills without keyword stuffing.
+- 🧠 **AI Interview Preparation Center:** Dynamically generates top personalized interview questions, categorized by difficulty, along with answering guidance.
+- 📊 **Profile Improvement Insights:** Highlights your strongest matching areas and identifies missing experience indicators.
+- 🚀 **Personalized Learning Roadmap:** Maps out a custom learning path, including priority skills to learn, technologies to explore, and recommended certifications.
+- 📈 **ATS Improvement Simulator:** Predicts your new ATS score after applying the AI's suggested resume enhancements.
+- 📄 **Career Success Report:** Export all insights, roadmaps, and interview questions into a clean, downloadable PDF report.
 
-# 4. Run
-mvn clean spring-boot:run
+## 🏗️ Architecture & Data Flow
 
-# 5. Open
-# http://localhost:8080              → main app
+```mermaid
+graph TD
+    A[Client Browser] -->|Uploads PDF/DOCX or Pastes Text| B[Spring Boot Controller]
+    B -->|File/Text parsing| C[Apache PDFBox & POI]
+    C -->|Extracted Text + JD| D[AiAnalysisService]
+    D -->|Builds Complex JSON Prompt| E[Google Gemini API]
+    E -->|Returns 7-Module JSON Schema| D
+    D -->|Parses & Validates JSON Node| B
+    B -->|Persists History Async| F[(In-Memory H2 DB)]
+    B -->|Returns AnalysisResponse DTO| A
+    A -->|Renders 6 Tabs & Uses html2pdf| G[Downloadable PDF Report]
+```
+
+## 🛠️ Technology Stack
+
+- **Frontend:** Vanilla HTML5, CSS3 (Custom Design System), JavaScript (ES6), html2pdf.js
+- **Backend:** Java 17, Spring Boot 3.3.4, Spring Web, Spring Data JPA
+- **AI Engine:** Google Gemini 1.5 Flash (via REST API)
+- **Document Processing:** Apache PDFBox (PDFs), Apache POI (Word Docs)
+- **Database:** H2 In-Memory Database (for history tracking)
+- **Deployment:** Render Web Services (CI/CD linked to GitHub)
+
+## 🚀 Setup & Local Deployment
+
+### Prerequisites
+- JDK 17+ installed
+- Maven installed
+- A Google Gemini API Key
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/shayan-304/smarthire-ai.git
+   cd smarthire-ai
+   ```
+
+2. **Set your API Key:**
+   You must set the `GEMINI_API_KEY` environment variable.
+   *Windows (PowerShell):*
+   ```powershell
+   $env:GEMINI_API_KEY="your_api_key_here"
+   ```
+   *Mac/Linux:*
+   ```powershell
+   export GEMINI_API_KEY="your_api_key_here"
+   ```
+
+3. **Run the application:**
+   ```bash
+   mvn spring-boot:run
+   ```
+
+4. **Access the application:**
+   Open your browser and navigate to `http://localhost:8080`.              → main app
 # http://localhost:8080/api/health   → health check
 # http://localhost:8080/h2-console   → view saved analysis data
 ```
 
 ---
 
-## Deploy on Render.com
+## Deploy Free on Render.com
 
 1. Push to GitHub
 2. Go to [render.com](https://render.com) → New → Web Service
 3. Connect repo `shayan-304/smarthire-ai`
-4. Select **Docker** | 
+4. Select **Docker** | Plan: **Free**
 5. Add env var: `GEMINI_API_KEY` = your key
 6. Click Deploy → live HTTPS URL in ~5 minutes
 

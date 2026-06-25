@@ -16,6 +16,13 @@ public class AnalysisResponse {
     private boolean success;
     private String errorMessage;
 
+    private com.fasterxml.jackson.databind.JsonNode interviewPrep;
+    private com.fasterxml.jackson.databind.JsonNode keywordGapAnalysis;
+    private com.fasterxml.jackson.databind.JsonNode resumeEnhancement;
+    private com.fasterxml.jackson.databind.JsonNode atsSimulator;
+    private com.fasterxml.jackson.databind.JsonNode profileInsights;
+    private com.fasterxml.jackson.databind.JsonNode learningRoadmap;
+
     public AnalysisResponse() {}
 
     // Getters and Setters
@@ -51,4 +58,22 @@ public class AnalysisResponse {
 
     public String getErrorMessage() { return errorMessage; }
     public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+
+    public com.fasterxml.jackson.databind.JsonNode getInterviewPrep() { return interviewPrep; }
+    public void setInterviewPrep(com.fasterxml.jackson.databind.JsonNode interviewPrep) { this.interviewPrep = interviewPrep; }
+
+    public com.fasterxml.jackson.databind.JsonNode getKeywordGapAnalysis() { return keywordGapAnalysis; }
+    public void setKeywordGapAnalysis(com.fasterxml.jackson.databind.JsonNode keywordGapAnalysis) { this.keywordGapAnalysis = keywordGapAnalysis; }
+
+    public com.fasterxml.jackson.databind.JsonNode getResumeEnhancement() { return resumeEnhancement; }
+    public void setResumeEnhancement(com.fasterxml.jackson.databind.JsonNode resumeEnhancement) { this.resumeEnhancement = resumeEnhancement; }
+
+    public com.fasterxml.jackson.databind.JsonNode getAtsSimulator() { return atsSimulator; }
+    public void setAtsSimulator(com.fasterxml.jackson.databind.JsonNode atsSimulator) { this.atsSimulator = atsSimulator; }
+
+    public com.fasterxml.jackson.databind.JsonNode getProfileInsights() { return profileInsights; }
+    public void setProfileInsights(com.fasterxml.jackson.databind.JsonNode profileInsights) { this.profileInsights = profileInsights; }
+
+    public com.fasterxml.jackson.databind.JsonNode getLearningRoadmap() { return learningRoadmap; }
+    public void setLearningRoadmap(com.fasterxml.jackson.databind.JsonNode learningRoadmap) { this.learningRoadmap = learningRoadmap; }
 }

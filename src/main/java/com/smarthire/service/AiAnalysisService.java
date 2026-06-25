@@ -58,7 +58,7 @@ public class AiAnalysisService {
 
     private String buildPrompt(String resume, String jd) {
         return "You are an expert ATS analyst and HR consultant.\n"
-             + "Analyze this resume against the job description carefully.\n\n"
+             + "Analyze this resume against the job description carefully and generate a complete Career Success Suite analysis.\n\n"
              + "RESUME:\n" + resume + "\n\n"
              + "JOB DESCRIPTION:\n" + jd + "\n\n"
              + "Return ONLY a raw JSON object. No markdown. No backticks. No explanation.\n"
@@ -68,20 +68,44 @@ public class AiAnalysisService {
              + "  \"scoreLabel\": \"<Poor|Below Average|Average|Good|Excellent>\",\n"
              + "  \"overallFeedback\": \"<2-3 sentence honest assessment>\",\n"
              + "  \"experienceLevel\": \"<Fresher|Junior|Mid-Level|Senior>\",\n"
-             + "  \"matchingSkills\": [\"skill1\", \"skill2\"],\n"
-             + "  \"missingSkills\": [\"skill1\", \"skill2\"],\n"
-             + "  \"strengths\": [\"strength1\", \"strength2\", \"strength3\"],\n"
-             + "  \"improvements\": [\"area1\", \"area2\", \"area3\"],\n"
-             + "  \"actionItems\": [\"action1\", \"action2\", \"action3\"]\n"
+             + "  \"matchingSkills\": [\"skill1\"],\n"
+             + "  \"missingSkills\": [\"skill1\"],\n"
+             + "  \"strengths\": [\"strength1\"],\n"
+             + "  \"improvements\": [\"area1\"],\n"
+             + "  \"actionItems\": [\"action1\"],\n"
+             + "  \"interviewPrep\": {\n"
+             + "    \"topQuestions\": [ { \"question\": \"?\", \"category\": \"Technical\", \"difficulty\": \"Beginner\", \"guidance\": \"?\", \"mistakesToAvoid\": \"?\", \"topicsToRevise\": \"?\" } ],\n"
+             + "    \"resources\": [ { \"skill\": \"?\", \"documentationUrl\": \"?\", \"youtubeQuery\": \"?\" } ]\n"
+             + "  },\n"
+             + "  \"keywordGapAnalysis\": {\n"
+             + "    \"missingKeywords\": [ { \"keyword\": \"?\", \"impact\": \"High\", \"category\": \"DevOps\" } ]\n"
+             + "  },\n"
+             + "  \"resumeEnhancement\": {\n"
+             + "    \"recommendations\": [ { \"section\": \"Experience\", \"currentContent\": \"?\", \"suggestedContent\": \"?\", \"reason\": \"?\" } ],\n"
+             + "    \"keywordPlacements\": [ { \"keyword\": \"?\", \"suggestedSection\": \"?\", \"exampleSentence\": \"?\" } ]\n"
+             + "  },\n"
+             + "  \"atsSimulator\": {\n"
+             + "    \"currentScore\": 72,\n"
+             + "    \"predictedScore\": 89,\n"
+             + "    \"estimatedImprovement\": \"+17%\"\n"
+             + "  },\n"
+             + "  \"profileInsights\": {\n"
+             + "    \"strongMatchingAreas\": [\"?\"],\n"
+             + "    \"missingExperienceIndicators\": [\"?\"],\n"
+             + "    \"suggestedImprovements\": [\"?\"]\n"
+             + "  },\n"
+             + "  \"learningRoadmap\": {\n"
+             + "    \"prioritySkillsToLearn\": [\"?\"],\n"
+             + "    \"technologiesToExplore\": [\"?\"],\n"
+             + "    \"recommendedCertifications\": [\"?\"],\n"
+             + "    \"practiceAreas\": [\"?\"]\n"
+             + "  }\n"
              + "}\n\n"
              + "Rules:\n"
-             + "- atsScore: 0-100 based on keyword and experience match\n"
-             + "- matchingSkills: max 8, skills in BOTH resume AND job description\n"
-             + "- missingSkills: max 6, key skills in JD but NOT in resume\n"
-             + "- strengths: 3-4 genuine strong points\n"
-             + "- improvements: 3-4 specific things to fix\n"
-             + "- actionItems: 3-5 concrete next steps\n"
-             + "Return ONLY the JSON. Nothing else.";
+             + "- Generate up to 10 highly personalized interview questions.\n"
+             + "- Provide specific, actionable resume enhancement rewrites.\n"
+             + "- Do NOT encourage keyword stuffing. Provide natural rewrites.\n"
+             + "- Return ONLY valid JSON.";
     }
 
     private String callGemini(String prompt) throws Exception {
@@ -148,6 +172,14 @@ public class AiAnalysisService {
             r.setStrengths(      arr(j.path("strengths")));
             r.setImprovements(   arr(j.path("improvements")));
             r.setActionItems(    arr(j.path("actionItems")));
+            
+            // New Modules
+            r.setInterviewPrep(j.path("interviewPrep"));
+            r.setKeywordGapAnalysis(j.path("keywordGapAnalysis"));
+            r.setResumeEnhancement(j.path("resumeEnhancement"));
+            r.setAtsSimulator(j.path("atsSimulator"));
+            r.setProfileInsights(j.path("profileInsights"));
+            r.setLearningRoadmap(j.path("learningRoadmap"));
             return r;
         } catch (Exception e) {
             log.severe("parseResponse error: " + e.getMessage());
