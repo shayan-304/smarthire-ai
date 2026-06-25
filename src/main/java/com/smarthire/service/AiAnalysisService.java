@@ -23,32 +23,32 @@ public class AiAnalysisService {
 
     private static final Logger log = Logger.getLogger(AiAnalysisService.class.getName());
 
-    @Value("${groq.api.key:NOT_SET}")
+    @Value("${gemini.api.key:NOT_SET}")
     private String apiKey;
 
-    private static final String GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-    private static final String MODEL     = "llama-3.3-70b-versatile";
+    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
+    private static final String MODEL = "gemini-1.5-flash";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final HttpClient   httpClient   = HttpClient.newBuilder()
+    private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(30)).build();
 
     @PostConstruct
     public void init() {
         if ("NOT_SET".equals(apiKey) || apiKey == null || apiKey.isBlank()) {
-            log.severe("GROQ_API_KEY environment variable is NOT SET. Set it in Railway/Render Variables.");
+            log.severe("GEMINI_API_KEY environment variable is NOT SET. Set it in Railway/Render Variables.");
         } else {
-            log.info("Groq ready — model: " + MODEL + " | key: " + apiKey.substring(0, 10) + "...");
+            log.info("Gemini ready — model: " + MODEL + " | key: " + apiKey.substring(0, Math.min(10, apiKey.length())) + "...");
         }
     }
 
     public AnalysisResponse analyzeResume(AnalysisRequest request) {
         if ("NOT_SET".equals(apiKey) || apiKey == null || apiKey.isBlank()) {
-            return error("GROQ_API_KEY is not configured. Please set it in your deployment environment variables.");
+            return error("GEMINI_API_KEY is not configured. Please set it in your deployment environment variables.");
         }
         try {
-            String prompt  = buildPrompt(request.getResumeText(), request.getJobDescription());
-            String rawText = callGroq(prompt);
+            String prompt = buildPrompt(request.getResumeText(), request.getJobDescription());
+            String rawText = callGemini(prompt);
             return parseResponse(rawText);
         } catch (Exception e) {
             log.severe("analyzeResume error: " + e.getMessage());
@@ -84,20 +84,22 @@ public class AiAnalysisService {
              + "Return ONLY the JSON. Nothing else.";
     }
 
-    private String callGroq(String prompt) throws Exception {
+    private String callGemini(String prompt) throws Exception {
         String body = objectMapper.writeValueAsString(Map.of(
-            "model",       MODEL,
-            "messages",    List.of(Map.of("role", "user", "content", prompt)),
-            "max_tokens",  1500,
-            "temperature", 0.2,
-            "top_p",       0.9,
-            "stream",      false
+            "contents", List.of(
+                Map.of("parts", List.of(
+                    Map.of("text", prompt)
+                ))
+            ),
+            "generationConfig", Map.of(
+                "responseMimeType", "application/json",
+                "temperature", 0.2
+            )
         ));
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(GROQ_URL))
-                .header("Content-Type",  "application/json")
-                .header("Authorization", "Bearer " + apiKey)
+                .uri(URI.create(GEMINI_URL + apiKey))
+                .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .timeout(Duration.ofSeconds(60))
                 .build();
@@ -106,18 +108,18 @@ public class AiAnalysisService {
                 request, HttpResponse.BodyHandlers.ofString());
 
         int status = response.statusCode();
-        if (status == 401) throw new RuntimeException("Invalid Groq API key. Check GROQ_API_KEY env var.");
-        if (status == 429) throw new RuntimeException("Groq rate limit. Wait 60 seconds and retry.");
-        if (status == 413) throw new RuntimeException("Resume too long. Please shorten it.");
-        if (status != 200) throw new RuntimeException("Groq error " + status + ": " +
+        if (status == 400) throw new RuntimeException("Invalid request format to Gemini.");
+        if (status == 403) throw new RuntimeException("Invalid Gemini API key. Check GEMINI_API_KEY env var.");
+        if (status == 429) throw new RuntimeException("Gemini rate limit exceeded.");
+        if (status != 200) throw new RuntimeException("Gemini error " + status + ": " +
                 response.body().substring(0, Math.min(300, response.body().length())));
 
-        JsonNode root    = objectMapper.readTree(response.body());
-        JsonNode choices = root.path("choices");
-        if (choices.isMissingNode() || !choices.isArray() || choices.isEmpty())
-            throw new RuntimeException("Groq returned empty choices.");
+        JsonNode root = objectMapper.readTree(response.body());
+        JsonNode candidates = root.path("candidates");
+        if (candidates.isMissingNode() || !candidates.isArray() || candidates.isEmpty())
+            throw new RuntimeException("Gemini returned empty choices.");
 
-        return choices.get(0).path("message").path("content").asText();
+        return candidates.get(0).path("content").path("parts").get(0).path("text").asText();
     }
 
     private AnalysisResponse parseResponse(String raw) {

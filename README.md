@@ -1,6 +1,6 @@
 #  SmartHire AI — AI-Powered Resume Analyzer
 
-SmartHire AI is a resume analysis tool built using Spring Boot and Groq LLaMA 3.3 models.
+SmartHire AI is a resume analysis tool built using Spring Boot and Google Gemini 1.5 Flash models.
 The application compares a resume with a job description and provides an ATS-style evaluation with suggestions for improvement.
 
 Users can upload resumes in PDF or DOCX format and receive:
@@ -19,7 +19,7 @@ The project also stores previous analysis results using an H2 database.
 
 ![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-brightgreen?style=flat-square)
-![Groq](https://img.shields.io/badge/Groq-LLaMA_3.3_70B-blue?style=flat-square)
+![Gemini](https://img.shields.io/badge/Google-Gemini_1.5_Flash-blue?style=flat-square)
 ![Render](https://img.shields.io/badge/Deployed-Render.com-purple?style=flat-square)
 
 ---
@@ -44,10 +44,10 @@ The project also stores previous analysis results using an H2 database.
 git clone https://github.com/shayan-304/smarthire-ai.git
 cd smarthire-ai
 
-# 2. Get free key at: console.groq.com → API Keys
+# 2. Get free key at: aistudio.google.com
 # 3. Set the key
-export GROQ_API_KEY=gsk_your-key-here      # Linux/Mac
-set GROQ_API_KEY=gsk_your-key-here         # Windows
+export GEMINI_API_KEY=your-key-here      # Linux/Mac
+set GEMINI_API_KEY=your-key-here         # Windows
 
 # 4. Run
 mvn clean spring-boot:run
@@ -66,7 +66,7 @@ mvn clean spring-boot:run
 2. Go to [render.com](https://render.com) → New → Web Service
 3. Connect repo `shayan-304/smarthire-ai`
 4. Select **Docker** | Plan: **Free**
-5. Add env var: `GROQ_API_KEY` = your key
+5. Add env var: `GEMINI_API_KEY` = your key
 6. Click Deploy → live HTTPS URL in ~5 minutes
 
 ---
@@ -89,7 +89,7 @@ mvn clean spring-boot:run
 |-------|-----------|
 | Language | Java 17 |
 | Framework | Spring Boot 3.2 |
-| AI Engine | Groq LLaMA 3.3 70B (`llama-3.3-70b-versatile`) |
+| AI Engine | Google Gemini 1.5 Flash |
 | PDF Parsing | Apache PDFBox 2.0.31 |
 | DOCX Parsing | Apache POI 5.2.3 |
 | Database | H2 In-Memory + Spring Data JPA |
@@ -108,7 +108,7 @@ DOCX parsing is handled using Apache POI
 
 Analysis history is stored using H2 Database
 
-Groq API is used for generating resume analysis results
+Gemini API is used for generating resume analysis results
 
 ---
 ## 📁 Project Structure
@@ -119,7 +119,7 @@ smarthire-ai/
 │   ├── SmartHireApplication.java
 │   ├── controller/ResumeController.java    ← 5 REST endpoints
 │   ├── service/
-│   │   ├── AiAnalysisService.java          ← Groq AI integration
+│   │   ├── AiAnalysisService.java          ← Gemini AI integration
 │   │   ├── FileParserService.java          ← PDF/DOCX parsing
 │   │   └── HistoryService.java             ← DB save wrapper
 │   ├── model/
@@ -146,7 +146,7 @@ smarthire-ai/
 | 2 | POI 5.2.5 classpath conflict with Spring logging | Downgraded to **5.2.3** + exclusions |
 | 3 | API key placeholder used as actual key | Fixed fallback + `@PostConstruct` |
 | 4 | No startup key validation | Added `@PostConstruct init()` |
-| 5 | JSON parsing crashed on extra Groq text | Added `indexOf({})` boundary extraction |
+| 5 | JSON parsing crashed on extra text | Added `indexOf({})` boundary extraction |
 
 ---
 
