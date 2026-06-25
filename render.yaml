@@ -6,7 +6,7 @@ services:
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     envVars:
-      - key: GROQ_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
       - key: PORT
         value: 8080
