@@ -17,13 +17,18 @@ SmartHire AI is an advanced, production-ready SaaS platform that goes far beyond
 
 ## Architecture and Data Flow
 
-1. Client Browser: User uploads PDF/DOCX or pastes text.
-2. Spring Boot Controller: Receives the request and routes it to the parsing engine.
-3. Apache PDFBox and POI: Extracts raw text from the documents.
-4. AiAnalysisService: Builds a complex, highly-structured JSON schema prompt.
-5. Google Gemini API: Processes the semantic analysis and returns the 7-module JSON.
-6. H2 Database: Asynchronously persists the analysis history.
-7. Client UI: Renders the 6 custom tabs and allows for local PDF report generation via html2pdf.
+```mermaid
+graph TD
+    A[Client Browser] -->|Uploads PDF/DOCX or Pastes Text| B[Spring Boot Controller]
+    B -->|File/Text parsing| C[Apache PDFBox and POI]
+    C -->|Extracted Text + JD| D[AiAnalysisService]
+    D -->|Builds Complex JSON Prompt| E[Google Gemini API]
+    E -->|Returns 7-Module JSON Schema| D
+    D -->|Parses and Validates JSON Node| B
+    B -->|Persists History Async| F[(In-Memory H2 DB)]
+    B -->|Returns AnalysisResponse DTO| A
+    A -->|Renders 6 Tabs and Uses html2pdf| G[Downloadable PDF Report]
+```
 
 ## Technology Stack
 
