@@ -1,6 +1,6 @@
 #  SmartHire AI — AI-Powered Resume Analyzer
 
-SmartHire AI is a resume analysis tool built using Spring Boot and Google Gemini 1.5 Flash models.
+SmartHire AI is a resume analysis tool built using Spring Boot and Google Gemini 2.5 Flash models.
 The application compares a resume with a job description and provides an ATS-style evaluation with suggestions for improvement.
 
 Users can upload resumes in PDF or DOCX format and receive:
@@ -19,7 +19,7 @@ The project also stores previous analysis results using an H2 database.
 
 ![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-brightgreen?style=flat-square)
-![Gemini](https://img.shields.io/badge/Google-Gemini_1.5_Flash-blue?style=flat-square)
+![Gemini](https://img.shields.io/badge/Google-Gemini_2.5_Flash-blue?style=flat-square)
 ![Render](https://img.shields.io/badge/Deployed-Render.com-purple?style=flat-square)
 
 ---
@@ -89,7 +89,7 @@ mvn clean spring-boot:run
 |-------|-----------|
 | Language | Java 17 |
 | Framework | Spring Boot 3.2 |
-| AI Engine | Google Gemini 1.5 Flash |
+| AI Engine | Google Gemini 2.5 Flash |
 | PDF Parsing | Apache PDFBox 2.0.31 |
 | DOCX Parsing | Apache POI 5.2.3 |
 | Database | H2 In-Memory + Spring Data JPA |

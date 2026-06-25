@@ -26,8 +26,8 @@ public class AiAnalysisService {
     @Value("${gemini.api.key:NOT_SET}")
     private String apiKey;
 
-    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
-    private static final String MODEL = "gemini-1.5-flash";
+    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
+    private static final String MODEL = "gemini-2.5-flash";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newBuilder()
