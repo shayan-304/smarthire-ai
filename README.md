@@ -44,7 +44,7 @@ The project also stores previous analysis results using an H2 database.
 git clone https://github.com/shayan-304/smarthire-ai.git
 cd smarthire-ai
 
-# 2. Get free key at: aistudio.google.com
+# 2. Get key at: aistudio.google.com
 # 3. Set the key
 export GEMINI_API_KEY=your-key-here      # Linux/Mac
 set GEMINI_API_KEY=your-key-here         # Windows
@@ -60,12 +60,12 @@ mvn clean spring-boot:run
 
 ---
 
-## Deploy Free on Render.com
+## Deploy on Render.com
 
 1. Push to GitHub
 2. Go to [render.com](https://render.com) → New → Web Service
 3. Connect repo `shayan-304/smarthire-ai`
-4. Select **Docker** | Plan: **Free**
+4. Select **Docker** | 
 5. Add env var: `GEMINI_API_KEY` = your key
 6. Click Deploy → live HTTPS URL in ~5 minutes
 
