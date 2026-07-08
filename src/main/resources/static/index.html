@@ -116,7 +116,7 @@
     .score-circle { position:relative; width:130px; height:130px; flex-shrink:0; }
     .score-circle svg { transform:rotate(-90deg); }
     .score-circle .track { fill:none; stroke:var(--border); stroke-width:10; }
-    .score-circle .fill { fill:none; stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1); }
+    .score-circle .fill { fill:none; stroke:var(--accent); stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1); }
     .score-number { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
     .score-number .num { font-family:var(--font-head); font-size:36px; font-weight:800; line-height:1; }
     .score-number .lbl { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
@@ -310,7 +310,7 @@
             <ul class="basic-list" id="profileStrengths"></ul>
           </div>
           <div class="result-card">
-            <h4><span class="icon icon-yellow">!</span> Opportunities</h4>
+            <h4><span class="icon icon-yellow">!</span> Improvement Suggestions</h4>
             <ul class="basic-list" id="profileOpportunities"></ul>
           </div>
         </div>
