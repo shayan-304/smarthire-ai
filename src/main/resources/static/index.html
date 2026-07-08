@@ -456,7 +456,17 @@
     // Core Score
     animateNumber('scoreNum', 0, d.atsScore, 1000);
     const offset = 345 - (345 * d.atsScore) / 100;
-    setTimeout(() => { document.getElementById('scoreFill').style.strokeDashoffset = offset; }, 50);
+    
+    const scoreFill = document.getElementById('scoreFill');
+    if (d.atsScore >= 70) {
+      scoreFill.style.stroke = 'var(--green)';
+    } else if (d.atsScore >= 50) {
+      scoreFill.style.stroke = 'var(--yellow)';
+    } else {
+      scoreFill.style.stroke = 'var(--red)';
+    }
+    
+    setTimeout(() => { scoreFill.style.strokeDashoffset = offset; }, 50);
     
     document.getElementById('scoreLabel').textContent = d.scoreLabel;
     document.getElementById('expLevel').textContent = d.experienceLevel;
