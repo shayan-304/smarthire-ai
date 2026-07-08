@@ -628,6 +628,7 @@
     document.getElementById('loadingState').classList.remove('active');
   }
   function showError(tab, msg) {
+    document.getElementById('formSection').style.display = 'block';
     const card = document.getElementById('errorCard' + tab);
     document.getElementById('errorMsg' + tab).textContent = msg;
     card.classList.add('visible');
