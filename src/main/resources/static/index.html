@@ -532,7 +532,7 @@
 
     const resDiv = document.getElementById('interviewResources');
     if (d.interviewPrep && d.interviewPrep.resources) {
-      renderTags('interviewResources', d.interviewPrep.resources.map(r => r.skill), 'tag');
+      renderResourceLinks('interviewResources', d.interviewPrep.resources, 'tag');
     }
 
     // Resume Enhancement
@@ -557,7 +557,7 @@
     if (d.learningRoadmap) {
       renderTags('roadmapPriority', d.learningRoadmap.prioritySkillsToLearn || [], 'tag-purple');
       renderTags('roadmapTech', d.learningRoadmap.technologiesToExplore || [], 'tag-yellow');
-      renderList('roadmapCerts', d.learningRoadmap.recommendedCertifications || []);
+      renderCertLinks('roadmapCerts', d.learningRoadmap.recommendedCertifications || []);
     }
 
     // Default to first tab
@@ -574,6 +574,24 @@
     const el = document.getElementById(id);
     if (!items || items.length === 0) { el.innerHTML = '<li style="color:var(--text-faint);">None</li>'; return; }
     el.innerHTML = items.map(s => `<li>${s}</li>`).join('');
+  }
+
+  function renderResourceLinks(id, items, cls) {
+    const el = document.getElementById(id);
+    if (!items || items.length === 0) { el.innerHTML = '<span style="color:var(--text-faint);font-size:13px;">None</span>'; return; }
+    el.innerHTML = items.map(r => {
+      const url = (r.documentationUrl && r.documentationUrl.startsWith('http')) ? r.documentationUrl : 'https://www.google.com/search?q=' + encodeURIComponent(r.skill + ' tutorial documentation');
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="tag ${cls}" style="text-decoration:none; cursor:pointer; display:inline-block;">${r.skill}</a>`;
+    }).join('');
+  }
+
+  function renderCertLinks(id, items) {
+    const el = document.getElementById(id);
+    if (!items || items.length === 0) { el.innerHTML = '<li style="color:var(--text-faint);">None</li>'; return; }
+    el.innerHTML = items.map(s => {
+      const url = 'https://www.google.com/search?q=' + encodeURIComponent(s + ' certification program');
+      return `<li style="margin-bottom:6px;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--accent); text-underline-offset:4px; cursor:pointer;">${s}</a></li>`;
+    }).join('');
   }
 
   function animateNumber(id, start, end, duration) {
