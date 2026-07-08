@@ -74,7 +74,7 @@ public class AiAnalysisService {
              + "  \"improvements\": [\"area1\"],\n"
              + "  \"actionItems\": [\"action1\"],\n"
              + "  \"interviewPrep\": {\n"
-             + "    \"topQuestions\": [ { \"question\": \"?\", \"category\": \"Technical\", \"difficulty\": \"Beginner\", \"guidance\": \"?\", \"mistakesToAvoid\": \"?\", \"topicsToRevise\": \"?\" } ],\n"
+             + "    \"topQuestions\": [ { \"question\": \"?\", \"category\": \"Technical\", \"difficulty\": \"Beginner\", \"guidance\": \"?\", \"mistakesToAvoid\": \"?\", \"topicsToRevise\": \"?\", \"exampleAnswer\": \"?\" } ],\n"
              + "    \"resources\": [ { \"skill\": \"?\", \"documentationUrl\": \"?\", \"youtubeQuery\": \"?\" } ]\n"
              + "  },\n"
              + "  \"keywordGapAnalysis\": {\n"
