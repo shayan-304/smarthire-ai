@@ -610,13 +610,19 @@
 
   function animateNumber(id, start, end, duration) {
     const el = document.getElementById(id);
-    const step = (end - start) / (duration / 16);
-    let cur = start;
-    const t = setInterval(() => {
-      cur += step;
-      if (cur >= end) { cur = end; clearInterval(t); }
-      el.textContent = Math.floor(cur);
-    }, 16);
+    if (typeof end !== 'number' || isNaN(end)) end = 0;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const current = start + (end - start) * progress;
+      el.textContent = Math.floor(current);
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    }
+    requestAnimationFrame(update);
   }
 
   function showLoading() {
