@@ -41,8 +41,9 @@
     
     header { padding:30px 0; }
     .nav { display:flex; align-items:center; justify-content:space-between; }
-    .logo { font-family:var(--font-head); font-size:24px; font-weight:800; letter-spacing:-0.5px; }
-    .logo span { color:var(--accent); }
+    .logo { font-family:var(--font-head); font-size:28px; font-weight:800; letter-spacing:-0.5px; display:flex; align-items:center; gap:4px; }
+    .logo .red-text { color:#e83323; } /* Kyndryl Red */
+    .logo .green-text { color:var(--green); } /* Teal Green */
     .badge { background:var(--accent-glow); border:1px solid var(--accent); color:var(--accent-light); font-size:11px; font-weight:700; padding:6px 12px; border-radius:100px; letter-spacing:1px; }
 
     .hero { text-align:center; padding:60px 0 50px; }
@@ -183,7 +184,7 @@
 
   <header>
     <nav class="nav">
-      <div class="logo">Smart<span>Hire</span> AI</div>
+      <div class="logo"><span class="red-text">SmartHire</span>-<span class="green-text">AI</span></div>
       <span class="badge">✨ POWERED BY GOOGLE GEMINI</span>
     </nav>
   </header>
@@ -378,8 +379,9 @@
 
   <footer>
     <div class="footer-inner">
-      <p class="footer-main">SmartHire AI &mdash; Built with <a href="#">Spring Boot</a> &amp; Google Gemini &nbsp;|&nbsp; <a href="/api/health">API Health</a></p>
+      <p class="footer-main">SmartHire-AI &mdash; Built with <a href="#">Spring Boot</a> &amp; Google Gemini &nbsp;|&nbsp; <a href="/api/health">API Health</a></p>
       <p class="footer-credit">Designed by <a href="https://www.linkedin.com/in/mafaaz-shayan" target="_blank" rel="noopener noreferrer"><span>Mafaaz Shayan</span></a></p>
+      <p style="margin-top:16px; font-size:12px; color:var(--text-faint);">Copyright &copy; 2026 SmartHire-AI Inc. All rights reserved</p>
     </div>
   </footer>
 </div>
