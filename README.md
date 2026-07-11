@@ -1,10 +1,12 @@
 # SmartHire AI - Career Success Platform
 
-**🚀 Live Project:** [https://smarthire-ai-27a5.onrender.com](https://smarthire-ai-27a5.onrender.com)
-
 SmartHire AI helps candidates analyze resumes, optimize ATS performance, prepare for interviews, identify skill gaps, improve career readiness, and maximize job success.
 
 SmartHire AI is an advanced, production-ready SaaS platform that goes far beyond simple resume parsing. It leverages the intelligence of Google Gemini to offer a complete Career Success Suite, seamlessly integrating document extraction, natural language processing, and personalized career guidance into one beautifully designed interface.
+
+
+** Checkout the Project:** [https://smarthire-ai-27a5.onrender.com](https://smarthire-ai-27a5.onrender.com)
+
 
 ## New Career Success Suite Features
 
